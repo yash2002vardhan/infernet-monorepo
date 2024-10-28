@@ -3,11 +3,19 @@ from typing import Any, Optional
 import click
 
 from infernet_cli.cli.docker import (
+<<<<<<< HEAD
     destroy_services,
     docker_destroy,
     docker_start,
     docker_stop,
     health_check,
+=======
+    destroy_containers,
+    destroy_service,
+    health_check,
+    start_service,
+    stop_service,
+>>>>>>> 0d634d74 (fix: arewave impl)
 )
 from infernet_cli.node import get_configs
 from infernet_cli.service import add_service_container, remove_service_container
@@ -16,7 +24,11 @@ from .options import (
     config_inputs_option,
     config_skip_option,
     deploy_dir_option,
+<<<<<<< HEAD
     destroy_services_option,
+=======
+    destroy_containers_option,
+>>>>>>> 0d634d74 (fix: arewave impl)
 )
 
 
@@ -73,6 +85,7 @@ def config(
 
 
 @deploy_dir_option
+<<<<<<< HEAD
 @cli.command("start", help="Start the Infernet Node.")
 def start(dir: str) -> None:
     click.echo("Starting Infernet Node...")
@@ -82,14 +95,38 @@ def start(dir: str) -> None:
 @deploy_dir_option
 @cli.command("health", help="Check health of the Infernet Node.")
 def health(dir: str) -> None:
+=======
+@cli.command("start", help="Start Docker services.")
+def start(dir: str) -> None:
+    """Start the services using docker-compose."""
+
+    click.echo("Starting Docker services...")
+    start_service(dir)
+
+
+@deploy_dir_option
+@cli.command("health", help="Check the health of Docker services.")
+def health(dir: str) -> None:
+    """Check the health of the services."""
+
+>>>>>>> 0d634d74 (fix: arewave impl)
     health_check(dir)
 
 
 @deploy_dir_option
+<<<<<<< HEAD
 @cli.command("stop", help="Stop the Infernet Node.")
 def stop(dir: str) -> None:
     click.echo("Stopping Infernet Node...")
     docker_stop(dir)
+=======
+@cli.command("stop", help="Stop Docker services.")
+def stop(dir: str) -> None:
+    """Stop services."""
+
+    click.echo("Stopping Docker services...")
+    stop_service(dir)
+>>>>>>> 0d634d74 (fix: arewave impl)
 
 
 def abort_if_false(ctx: Any, param: Any, value: Optional[str]) -> None:
@@ -97,12 +134,17 @@ def abort_if_false(ctx: Any, param: Any, value: Optional[str]) -> None:
         click.Abort()
 
 
+<<<<<<< HEAD
+=======
+@destroy_containers_option
+>>>>>>> 0d634d74 (fix: arewave impl)
 @click.option(
     "-y",
     "--yes",
     is_flag=True,
     callback=abort_if_false,
     expose_value=False,
+<<<<<<< HEAD
     help="No manual y/n confirmation required.",
     prompt="Are you sure you want to destroy the Infernet Node?",
 )
@@ -131,6 +173,38 @@ def reset(dir: str, services: bool = False) -> None:
         destroy_services(dir)
 
     docker_start(dir)
+=======
+    prompt="Are you sure you want to remove all services?",
+)
+@deploy_dir_option
+@cli.command("destroy", help="Remove Docker services.")
+def destroy(dir: str, containers: bool = False) -> None:
+    """Destroy services."""
+
+    click.echo("Destroying services...")
+    stop_service(dir)
+    destroy_service(dir)
+
+    if containers:
+        click.echo("Destroying containers...")
+        destroy_containers(dir)
+
+
+@destroy_containers_option
+@deploy_dir_option
+@cli.command("reset", help="Reset Docker services.")
+def reset(dir: str, containers: bool = False) -> None:
+    """Reset services."""
+
+    click.echo("Resetting Docker services...")
+    stop_service(dir)
+
+    if containers:
+        click.echo("Destroying containers...")
+        destroy_containers(dir)
+
+    start_service(dir)
+>>>>>>> 0d634d74 (fix: arewave impl)
 
 
 @config_skip_option
@@ -139,7 +213,11 @@ def reset(dir: str, services: bool = False) -> None:
 @click.argument("recipe_id", type=str, required=False)
 @cli.command(
     "add-service",
+<<<<<<< HEAD
     help="Add a service to the node configuration.",
+=======
+    help="Configure a service for the node.",
+>>>>>>> 0d634d74 (fix: arewave impl)
 )
 def add_service(
     recipe_id: Optional[str],
@@ -147,6 +225,11 @@ def add_service(
     inputs: Optional[dict[str, Any]] = None,
     skip: bool = False,
 ) -> None:
+<<<<<<< HEAD
+=======
+    """Add container configuration to the node config.json."""
+
+>>>>>>> 0d634d74 (fix: arewave impl)
     add_service_container(recipe_id, dir, inputs, skip)
 
 
@@ -154,7 +237,15 @@ def add_service(
 @click.argument("service_id", type=str, required=False)
 @cli.command(
     "remove-service",
+<<<<<<< HEAD
     help="Remove a service from the node configuration.",
 )
 def remove_service(service_id: Optional[str], dir: str) -> None:
+=======
+    help="Remove a service from the node.",
+)
+def remove_service(service_id: Optional[str], dir: str) -> None:
+    """Remove a service from the node."""
+
+>>>>>>> 0d634d74 (fix: arewave impl)
     remove_service_container(service_id, dir)

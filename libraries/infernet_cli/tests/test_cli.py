@@ -45,6 +45,7 @@ def test_config_command_with_noninteractive_inputs(
     assert kwargs.get("force") is False
 
 
+<<<<<<< HEAD
 @patch("infernet_cli.cli.docker_start")
 def test_start_command(mock_docker_start: MagicMock, runner: CliRunner) -> None:
     result = runner.invoke(cli, ["start", "--dir", "/test/dir"])
@@ -64,10 +65,34 @@ def test_stop_command(mock_docker_stop: MagicMock, runner: CliRunner) -> None:
 def test_destroy_command(
     mock_docker_stop: MagicMock,
     mock_docker_destroy: MagicMock,
+=======
+@patch("infernet_cli.cli.start_service")
+def test_start_command(mock_start_service: MagicMock, runner: CliRunner) -> None:
+    result = runner.invoke(cli, ["start", "--dir", "/test/dir"])
+    assert result.exit_code == 0
+    assert "Starting Docker services..." in result.output
+    mock_start_service.assert_called_once_with("/test/dir")
+
+
+@patch("infernet_cli.cli.stop_service")
+def test_stop_command(mock_stop_service: MagicMock, runner: CliRunner) -> None:
+    result = runner.invoke(cli, ["stop", "--dir", "/test/dir"])
+    assert result.exit_code == 0
+    assert "Stopping Docker services..." in result.output
+    mock_stop_service.assert_called_once_with("/test/dir")
+
+
+@patch("infernet_cli.cli.destroy_service")
+@patch("infernet_cli.cli.stop_service")
+def test_destroy_command(
+    mock_stop_service: MagicMock,
+    mock_destroy_service: MagicMock,
+>>>>>>> 0d634d74 (fix: arewave impl)
     runner: CliRunner,
 ) -> None:
     result = runner.invoke(cli, ["destroy", "--dir", "/test/dir", "--yes"])
     assert result.exit_code == 0
+<<<<<<< HEAD
     mock_docker_stop.assert_called_once_with("/test/dir")
     mock_docker_destroy.assert_called_once_with("/test/dir")
 
@@ -95,10 +120,23 @@ def test_destroy_command_2(
 def test_reset_command(
     mock_docker_stop: MagicMock,
     mock_docker_start: MagicMock,
+=======
+    assert "Destroying services..." in result.output
+    mock_stop_service.assert_called_once_with("/test/dir")
+    mock_destroy_service.assert_called_once_with("/test/dir")
+
+
+@patch("infernet_cli.cli.start_service")
+@patch("infernet_cli.cli.stop_service")
+def test_reset_command(
+    mock_stop_service: MagicMock,
+    mock_start_service: MagicMock,
+>>>>>>> 0d634d74 (fix: arewave impl)
     runner: CliRunner,
 ) -> None:
     result = runner.invoke(cli, ["reset", "--dir", "/test/dir"])
     assert result.exit_code == 0
+<<<<<<< HEAD
     mock_docker_stop.assert_called_once_with("/test/dir")
     mock_docker_start.assert_called_once_with("/test/dir")
 
@@ -117,6 +155,11 @@ def test_reset_command_2(
     mock_docker_stop.assert_called_once_with("/test/dir")
     mock_docker_start.assert_called_once_with("/test/dir")
     mock_destroy_services.assert_called_once_with("/test/dir")
+=======
+    assert "Resetting Docker services..." in result.output
+    mock_stop_service.assert_called_once_with("/test/dir")
+    mock_start_service.assert_called_once_with("/test/dir")
+>>>>>>> 0d634d74 (fix: arewave impl)
 
 
 @patch("infernet_cli.cli.add_service_container")

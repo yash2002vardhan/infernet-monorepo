@@ -1,19 +1,18 @@
 import filecmp
 import os
-import shlex
 import shutil
-import signal
-import subprocess
 import tempfile
-from typing import Any, Callable, Dict, Generator, Optional
+from pathlib import Path
+from typing import Any, Callable, Dict, Generator, List, Optional
 
 import requests
 from ar import Wallet  # type: ignore
-from retry import retry
+from common import ritual_arweave_dir
+from reretry import retry  # type: ignore
 from ritual_arweave.repo_manager import RepoManager
 from ritual_arweave.utils import load_wallet
-
-from .common import ritual_arweave_dir
+from test_library.file_utils import library_dir
+from test_library.orchestration import run_make_cmd
 
 ARWEAVE_DECIMALS: int = 12
 ARLOCAL_DEFAULT_PORT = 3069
@@ -56,7 +55,7 @@ def from_ar(amount: float) -> int:
     return int(amount * (10**ARWEAVE_DECIMALS))
 
 
-@retry(tries=200, delay=0.1)
+@retry(tries=200, delay=0.1)  # type: ignore
 def mint_ar(address: str, balance: int = from_ar(69)) -> None:
     requests.get(f"{api_url}/mint/{address}/{balance}")
 
@@ -71,15 +70,20 @@ def arweave_node_lifecycle(
         stop_arlocal()
 
 
-def start_arlocal(port: int = ARLOCAL_DEFAULT_PORT) -> subprocess.Popen[bytes]:
-    runner = os.popen("command -v bunx || command -v npx").read()
-    return subprocess.Popen(shlex.split(f"{runner} arlocal {port} &"))
+def start_arlocal(port: int = ARLOCAL_DEFAULT_PORT) -> None:
+    """
+    Starts a local arweave node using the make command.
+    Args:
+        port: The port on which the arweave node should run.
+    """
+    return run_make_cmd(f"run-ar port={port}", dir=library_dir("ritual_arweave"))
 
 
-def stop_arlocal(port: int = ARLOCAL_DEFAULT_PORT) -> None:
-    awk_cmd = "awk '{print $2}'"
-    pid = os.popen(f"lsof -i :{port} | tail -n 1 | {awk_cmd}").read()
-    os.kill(int(pid), signal.SIGKILL)
+def stop_arlocal() -> None:
+    """
+    Stops the local arweave node using the make command.
+    """
+    run_make_cmd("stop-ar", dir=library_dir("ritual_arweave"))
 
 
 FixtureType = Callable[[Any], Any]
@@ -137,7 +141,7 @@ class TemporaryRepo:
         # assert no other files are present in the directory
         assert len(os.listdir(directory)) == len(self.files_dict)
 
-    def check_against_file(self, filepath: str) -> None:
+    def check_against_file(self, filepath: Path) -> None:
         """
         Ensures that the file at the given filepath has the same content as the
         corresponding file in the temporary directory.
@@ -147,7 +151,7 @@ class TemporaryRepo:
         assert filename in self.files_dict
         assert filecmp.cmp(filepath, os.path.join(self.path, filename))
 
-    def check_paths(self, paths: list[str]) -> None:
+    def check_paths(self, paths: List[Path]) -> None:
         """
         Compares the paths of the files in the temporary directory with the paths
         provided.
@@ -156,7 +160,7 @@ class TemporaryRepo:
         for path in paths:
             found = False
             for filepath in self.files_dict:
-                if path.endswith(filepath):
+                if str(path).endswith(filepath):
                     found = True
                     break
             assert found
@@ -193,7 +197,7 @@ def upload_repo(
     Returns:
         RepoManager: The RepoManager object that was used to upload the repository.
     """
-    mm = RepoManager(api_url, wallet_path=wallet)
+    mm = RepoManager(gateways=[api_url], wallet_path=wallet)
     mm.upload_repo(
         name=model.name,
         path=model.path,

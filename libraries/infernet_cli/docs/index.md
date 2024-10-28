@@ -35,6 +35,7 @@ Here's how you can **configure** a node connected to a local Anvil chain:
 export DEPLOY_DIR=deploy/
 
 infernet-cli config anvil --skip
+<<<<<<< HEAD
 ```
 
 The output will look something like this:
@@ -64,18 +65,42 @@ The output will look something like this:
 ```
 Version not provided. Using latest version '2.0.0'.
 Successfully added service 'onnx-inference-2.0.0' to config.json.
+=======
+# No version specified. Using latest: v1.3.0
+# Using configurations:
+#    Chain = 'anvil'
+#    Version = '1.3.0'
+#    GPU support = disabled
+#    Output dir = 'deploy'
+
+# Stored base configurations to '/root/deploy'.
+# To configure services:
+#   - Use `infernet-cli add-service`
+#   - Or edit config.json directly
+>>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 You can then **deploy** the node:
 
 ```bash
 infernet-cli start
+<<<<<<< HEAD
 ```
 
 and check that it's **healthy**:
 
 ```bash
 infernet-cli health
+=======
+# Starting Docker services...
+# Services started successfully.
+```
+
+and check that it's **healthy**:
+```bash
+infernet-cli health
+# All containers are up and running.
+>>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ## More Options

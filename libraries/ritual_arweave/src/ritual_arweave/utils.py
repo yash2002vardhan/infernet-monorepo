@@ -5,7 +5,7 @@ Utility functions for the Arweave integration.
 import hashlib
 import logging
 import os
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from ar import DEFAULT_API_URL, Wallet  # type: ignore
 
@@ -92,10 +92,40 @@ def load_wallet(
             "ARWEAVE_WALLET_FILE_PATH or explicitly pass a file path."
         )
 
-    log.info(f"checking wallet file path: {wallet_file_path}")
+    log.debug(f"checking wallet file path: {wallet_file_path}")
 
     if not os.path.exists(wallet_file_path):
         raise ValueError(f"Wallet file {wallet_file_path} does not exist.")
 
     # wallet used to pay for file upload
     return Wallet(wallet_file_path, api_url=api_url)
+
+
+PUBLIC_GATEWAYS: List[str] = [
+    "https://arweave.net",
+    "https://vrising.site",
+    "https://adaconna.top",
+    "https://ario-testnet.us.nodefleet.org",
+    "https://arweave.ar",
+    "https://aksamlan.xyz",
+    "https://frostor.xyz",
+    "https://vrising.site",
+    "https://acanpolat.xyz",
+    "https://iogate.uk",
+    "https://cahil.store",
+    "https://moruehoca.online",
+    "https://ar-io.dev",
+    "https://kahvenodes.online",
+    "https://thd.io.vn",
+    "https://bodhiirozt.xyz",
+    "https://arweave.developerdao.com",
+    "https://iogate.co.uk",
+    "https://0xsaitomo.xyz",
+    "https://dwentz.site",
+    "https://deknow.top",
+    "https://darthlyrex.xyz",
+    "https://liglow.com",
+    "https://doflamingo.xyz",
+    "https://hexamz.tech",
+    "https://canduesed.xyz",
+]

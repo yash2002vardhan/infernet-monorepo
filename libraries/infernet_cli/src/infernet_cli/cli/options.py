@@ -59,10 +59,18 @@ def config_skip_option(f: GenericCallable) -> GenericCallable:
     )(f)
 
 
+<<<<<<< HEAD
 def destroy_services_option(f: GenericCallable) -> GenericCallable:
     """Decorator to force removal of service containers."""
     return click.option(
         "--services",
+=======
+def destroy_containers_option(f: GenericCallable) -> GenericCallable:
+    """Decorator to force removal of service containers."""
+    return click.option(
+        "-c",
+        "--containers",
+>>>>>>> 0d634d74 (fix: arewave impl)
         is_flag=True,
         help="Force removal of service containers. Destructive operation.",
     )(f)

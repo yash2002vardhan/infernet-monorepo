@@ -1,6 +1,10 @@
 [project]
 name = "infernet-cli"
+<<<<<<< HEAD
 version = "1.0.4"
+=======
+version = "1.0.0"
+>>>>>>> 0d634d74 (fix: arewave impl)
 description = "Infernet Node CLI"
 authors = [
     { name = "Stelios Rousoglou", email = "stelios@ritual.net" }
