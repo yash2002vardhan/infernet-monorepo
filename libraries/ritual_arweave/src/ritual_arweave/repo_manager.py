@@ -295,12 +295,37 @@ class RepoManager(FileManager):
         file_name: str,
         base_path: str | Path = Path("."),
     ) -> Path:
+        """
+        Downloads a file from a repo on Arweave.
+
+        Args:
+            repo_id: Arweave repo id, in the format of `owner`/`name` where `owner` is
+                the wallet address of the uploader and `name` is the repository's name.
+            file_name: name of the file to download.
+            base_path: path to download the file to.
+
+        Returns:
+            path to the downloaded file.
+
+        """
+
         base_path = Path(base_path)
         manifest = self.get_repo_manifest(repo_id)
         file_tid = manifest["paths"][file_name]["id"]
         return self.download(base_path / file_name, file_tid)
 
     def get_repo_manifest(self, repo_id: Union[ArRepoId, str]) -> dict[str, Any]:
+        """
+        Get the manifest of a repo from Arweave.
+        Args:
+            repo_id: Arweave repo id, in the format of `owner`/`name` where `owner` is
+                the wallet address of the uploader and `name` is the repository's name.
+
+        Returns:
+            dict: manifest of the repo.
+
+        """
+
         if isinstance(repo_id, str):
             repo_id = ArRepoId.from_str(repo_id)
         owners = [repo_id.owner]
