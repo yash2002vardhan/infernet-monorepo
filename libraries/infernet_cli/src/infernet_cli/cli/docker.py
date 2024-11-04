@@ -87,7 +87,12 @@ def health_check(dir: str) -> None:
         )
         # Parse the result as JSON to inspect each container
         containers = ",".join(result.stdout.split("\n")[:-1])
-        containers_obj = json.loads(f"[{containers}]")
+
+        # Tackle Mac/Linux compatibility of docker compose output
+        if containers.startswith("[{"):
+            containers_obj = json.loads(containers)
+        else:
+            containers_obj = json.loads(f"[{containers}]")
 
         if len(containers_obj) == 0:
             click.echo("No containers found.")
