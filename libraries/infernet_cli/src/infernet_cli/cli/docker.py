@@ -15,13 +15,8 @@ def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-<<<<<<< HEAD
 def docker_start(dir: str) -> None:
     """Start the containers."""
-=======
-def start_service(dir: str) -> None:
-    """Start the services."""
->>>>>>> 0d634d74 (fix: arewave impl)
     try:
         # Run the docker compose command without showing the output
         result = run_command(
@@ -30,27 +25,16 @@ def start_service(dir: str) -> None:
 
         # Check if the command was successful
         if result.returncode == 0:
-<<<<<<< HEAD
             click.echo("Containers started successfully.")
         else:
             click.echo(f"Failed to start containers. Error: {result.stderr}")
-=======
-            click.echo("Services started successfully.")
-        else:
-            click.echo(f"Failed to start services. Error: {result.stderr}")
->>>>>>> 0d634d74 (fix: arewave impl)
 
     except Exception as e:
         click.echo(f"An error occurred: {e}")
 
 
-<<<<<<< HEAD
 def docker_stop(dir: str) -> None:
     """Stop the containers."""
-=======
-def stop_service(dir: str) -> None:
-    """Stop the services."""
->>>>>>> 0d634d74 (fix: arewave impl)
     try:
         # Run the docker compose command without showing the output
         result = run_command(
@@ -59,7 +43,6 @@ def stop_service(dir: str) -> None:
 
         # Check if the command was successful
         if result.returncode == 0:
-<<<<<<< HEAD
             click.echo("Containers stopped successfully.")
         else:
             click.echo(f"Failed to stop containers. Error: {result.stderr}")
@@ -70,18 +53,6 @@ def stop_service(dir: str) -> None:
 
 def docker_destroy(dir: str) -> None:
     """Destroy the containers."""
-=======
-            click.echo("Services stopped successfully.")
-        else:
-            click.echo(f"Failed to stop services. Error: {result.stderr}")
-
-    except Exception as e:
-        click.echo(f"An error occurred while stopping services: {e}")
-
-
-def destroy_service(dir: str) -> None:
-    """Destroy the services."""
->>>>>>> 0d634d74 (fix: arewave impl)
     try:
         # Run the docker compose command without showing the output
         result = run_command(
@@ -90,21 +61,12 @@ def destroy_service(dir: str) -> None:
 
         # Check if the command was successful
         if result.returncode == 0:
-<<<<<<< HEAD
             click.echo("Containers destroyed successfully.")
         else:
             click.echo(f"Failed to destroy containers. Error: {result.stderr}")
 
     except Exception as e:
         click.echo(f"An error occurred while destroying containers: {e}")
-=======
-            click.echo("Services destroyed successfully.")
-        else:
-            click.echo(f"Failed to destroy services. Error: {result.stderr}")
-
-    except Exception as e:
-        click.echo(f"An error occurred while destroying services: {e}")
->>>>>>> 0d634d74 (fix: arewave impl)
 
 
 def health_check(dir: str) -> None:
@@ -125,16 +87,12 @@ def health_check(dir: str) -> None:
         )
         # Parse the result as JSON to inspect each container
         containers = ",".join(result.stdout.split("\n")[:-1])
-<<<<<<< HEAD
 
         # Tackle Mac/Linux compatibility of docker compose output
         if containers.startswith("[{"):
             containers_obj = json.loads(containers)
         else:
             containers_obj = json.loads(f"[{containers}]")
-=======
-        containers_obj = json.loads(f"[{containers}]")
->>>>>>> 0d634d74 (fix: arewave impl)
 
         if len(containers_obj) == 0:
             click.echo("No containers found.")
@@ -165,13 +123,8 @@ def health_check(dir: str) -> None:
         click.echo(f"An error occurred while checking container health: {e}")
 
 
-<<<<<<< HEAD
 def destroy_services(dir: str) -> None:
     """Stop and remove all service containers found in the config file."""
-=======
-def destroy_containers(dir: str) -> None:
-    """Stop and remove all containers in the config file."""
->>>>>>> 0d634d74 (fix: arewave impl)
 
     if not os.path.exists(f"{dir}/config.json"):
         raise click.ClickException(f"{dir}/config.json not found.")

@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 # Usage
-=======
-# Infernet CLI Usage
->>>>>>> 0d634d74 (fix: arewave impl)
 
 The following examples assume a target directory `deploy/`. All files related to node configuration and deployment will be stored here.
 
 You can set the target directory with every command using `--dir`, or you can set it once as an ENV variable:
-<<<<<<< HEAD
 
-=======
->>>>>>> 0d634d74 (fix: arewave impl)
 ```bash
 export DEPLOY_DIR=deploy
 ```
@@ -19,7 +12,6 @@ export DEPLOY_DIR=deploy
 
 To pull plug-and-play node configurations, you can use `config`.
 
-<<<<<<< HEAD
 <details>
     <summary>Usage</summary>
     ```
@@ -102,50 +94,6 @@ To configure services:
 ```
 
 **Alternatively**, the same inputs can be provided **non-interactively** as a JSON string, using the `--inputs` option:
-=======
-```bash
-infernet-cli config --help
-# Usage: infernet-cli config [OPTIONS] {anvil|base|base-sepolia|eth|other}
-
-#   Pull node configurations.
-
-# Options:
-#   -v, --version TEXT  The version of the node to configure.
-#   -d, --dir TEXT      The directory to store and retrieve configuration files.
-#                       Can also set DEPLOY_DIR environment variable.
-#   --gpu               Enable GPU support for the node.
-#   -i, --inputs TEXT   The inputs to fill in the recipe. Should be a JSON
-#                       string of key-value pairs. If not provided, the user
-#                       will be prompted for inputs via the CLI.
-#   -y, --yes           Force overwrite of existing configurations.
-#   --skip              Skip optional inputs.
-```
-
-### Inputs
-
-Depending on your chain selection, some configuration will need user input in real time. For example, when configuring a node for `Base Mainnet`, user will be prompted for their wallet's `private_key` and an optional `payment_address`:
-
-```bash
-infernet-cli config base
-# No version specified. Using latest: v1.3.0
-# Using configurations:
-#    Chain = 'base'
-#    Version = '1.3.0'
-#    GPU support = disabled
-#    Output dir = 'deploy'
-# "private_key" (string): Private key for the wallet (Required):
-#     Enter value: 0xxxxxxxxxx
-# "payment_address" (string): Payment address for the wallet (RETURN to skip):
-#     Enter value:
-#
-# Stored base configurations to '/root/deploy'.
-# To configure services:
-#   - Use `infernet-cli add-service`
-#   - Or edit config.json directly
-```
-
-The user has the option to pass in the inputs **non-interactively** as a JSON string instead, with the `--inputs` option:
->>>>>>> 0d634d74 (fix: arewave impl)
 
 ```bash
 infernet-cli config base -v "1.3.0" --inputs '{"private_key": "0xxxxxxxxxx"}'
@@ -158,7 +106,6 @@ To deploy a GPU-enabled Infernet Node, just use the `--gpu` flag. This assumes y
 
 ```bash
 infernet-cli config base --gpu --inputs '{"private_key": "0xxxxxxxxxx"}'
-<<<<<<< HEAD
 ```
 
 The output will look something like this:
@@ -174,25 +121,12 @@ Stored base configurations to '/root/deploy'.
 To configure services:
   - Use `infernet-cli add-service`
   - Or edit config.json directly
-=======
-# Using configurations:
-#    Chain = 'base'
-#    Version = '1.3.0'
-#    GPU support = enabled
-#    Output dir = 'deploy'
-#
-# Stored base configurations to '/root/deploy'.
-# To configure services:
-#   - Use `infernet-cli add-service`
-#   - Or edit config.json directly
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ## Service Configuration
 
 To add service containers to the node, you can use `add-service`.
 
-<<<<<<< HEAD
 You can configure a service either [manually](#manually) by providing a complete [container specification](https://docs.ritual.net/infernet/node/configuration/v1_2_0#container_spec-object), or using [recipes](#recipes).
 
 <details>
@@ -244,48 +178,11 @@ Successfully added service 'hf-client-inference:1.0.0' to config.json.
 
 ```bash
 infernet-cli add-service hf-client-inference:1.0.0 --inputs '{"HF_TOKEN": "a0xxxxxxxxxxxxx"}'
-=======
-```bash
-infernet-cli add-service --help
-# Usage: infernet-cli add-service [OPTIONS] [RECIPE_ID]
-#   Configure a service for the node.
-
-# Options:
-#   -d, --dir TEXT     The directory to store and retrieve configuration files.
-#                      Can also set DEPLOY_DIR environment variable.
-#   -i, --inputs TEXT  The inputs to fill in the recipe. Should be a JSON string
-#                      of key-value pairs. If not provided, the user will be
-#                      prompted for inputs via the CLI.
-#   --skip             Skip optional inputs.
-```
-
-You can configure a service either manually, by [manually](#manually) providing a complete [container specification](https://docs.ritual.net/infernet/node/configuration/v1_2_0#container_spec-object), or using [recipes](#recipes).
-
-### Recipes
-
-You can configure one or more [official Ritual services](https://infernet-services.docs.ritual.net) using [recipes](https://github.com/ritual-net/infernet-recipes/tree/main/services).
-
-```bash
-infernet-cli add-service hf-client-inference:1.0.0
-# "HF_TOKEN" (string): The Hugging Face API token. (Required):
-#     Enter value: a0xxxxxxxxxxxxx
-# "NUM_WORKERS" (integer): The number of workers to use with the server. (RETURN to skip):
-#     Enter value:
-#
-# Successfully added service 'hf-client-inference:1.0.0' to config.json.
-```
-
-Inputs can also be provided **non-interactively** via a JSON string:
-```bash
-infernet-cli add-service hf-client-inference:1.0.0 --inputs '{"HF_TOKEN": "a0xxxxxxxxxxxxx"}'
-# Successfully added service 'hf-client-inference:1.0.0' to config.json.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Manually
 
 You can also add custom service configurations via command-line:
-<<<<<<< HEAD
 
 ```bash
 infernet-cli add-service
@@ -312,24 +209,10 @@ followed by EOF (`Ctrl+D` on Linux / MacOS). You should see output similar to th
 
 ```
 Successfully added service 'hf-client-inference' to config.json.
-=======
-```bash
-infernet-cli add-service
-# Enter service configuration JSON, followed by EOF:
-# {
-#     "id": "hf-client-inference",
-#     "image": "ritualnetwork/torch_inference_service:1.0.0",
-#     "env": {"HF_TOKEN": "a0xxxxxxxxxxxxx"},
-#     "command": "--bind=0.0.0.0:3000 --workers=2"
-# }
-#
-# Successfully added service 'hf-client-inference' to config.json.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Remove
 
-<<<<<<< HEAD
 You can remove a service configuration with `remove-service`.
 
 <details>
@@ -355,30 +238,6 @@ or remove all services:
 
 ```bash
 infernet-cli remove-service
-=======
-You can remove a service configuration with `remove-service`:
-```bash
-infernet-cli remove-service --help
-# Usage: infernet-cli remove-service [OPTIONS] [SERVICE_ID]
-
-#   Remove a service from the node.
-
-# Options:
-#   -d, --dir TEXT  The directory to store and retrieve configuration files. Can
-#                   also set DEPLOY_DIR environment variable.
-```
-
-You can remove services **by ID**:
-```bash
-infernet-cli remove-service hf-client-inference:1.0.0
-# Successfully removed service(s).
-```
-
-or remove all services:
-```bash
-infernet-cli remove-service
-# Successfully removed service(s).
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ## Node Deployment
@@ -387,7 +246,6 @@ After [configuring a node](#node-configuration) and [adding some services](#serv
 
 ### Deploy
 
-<<<<<<< HEAD
 To **create** or **start** the node, use `start`.
 
 <details>
@@ -414,18 +272,10 @@ If successful, you should see:
 ```
 # Starting Infernet Node...
 # Containers started successfully.
-=======
-To **create** or **start** the node, use `start`:
-```bash
-infernet-cli start
-# Starting Docker services...
-# Services started successfully.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Health
 
-<<<<<<< HEAD
 To check the **health** of the node and containers, use `health`.
 
 <details>
@@ -451,17 +301,10 @@ If successful, you should see:
 
 ```
 All containers are up and running.
-=======
-To check the **health** of the node and containers, use `health`:
-```bash
-infernet-cli health
-# All containers are up and running.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Stop
 
-<<<<<<< HEAD
 To stop the node, use `stop`.
 
 <details>
@@ -488,18 +331,10 @@ If successful, you should see:
 ```
 Stopping Infernet Node...
 Containers stopped successfully.
-=======
-To stop the node, use `stop`:
-```bash
-infernet-cli stop
-# Stopping Docker services...
-# Services stopped successfully.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Reset
 
-<<<<<<< HEAD
 To reset the node, use `reset`.
 
 <details>
@@ -543,29 +378,10 @@ Resetting Infernet Node...
 Containers stopped successfully.
 Destroying service containers...
 Containers started successfully.
-=======
-To reset the node, use `reset`:
-```bash
-infernet-cli reset
-# Resetting Docker services...
-# Services stopped successfully.
-# Services started successfully.
-```
-
-By default, containers are **not** reset when the node is stopped or destroyed. This is intended behavior to ensure pre-processing-heavy containers are not repeatedly initialized. To **force** reset all containers, use the `--containers` flag. This is a destructive operation.
-
-```bash
-infernet-cli reset --containers
-# Resetting Docker services...
-# Services stopped successfully.
-# Destroying containers...
-# Services started successfully.
->>>>>>> 0d634d74 (fix: arewave impl)
 ```
 
 ### Destroy
 
-<<<<<<< HEAD
 To destroy the node, use `destroy`.
 
 <details>
@@ -610,21 +426,4 @@ Destroying Infernet Node...
 Containers stopped successfully.
 Containers destroyed successfully.
 Destroying service containers...
-=======
-To destroy the node, use `destroy`:
-```bash
-infernet-cli destroy -y
-# Destroying services...
-# Services stopped successfully.
-# Services destroyed successfully.
-```
-
-By default, containers are **not** destroyed when the node is stopped or destroyed. This is intended behavior to ensure pre-processing-heavy containers are not repeatedly initialized. To **force** destroy all containers, use the `--containers` flag. This is a destructive operation.
-```bash
-infernet-cli destroy --containers -y
-# Destroying services...
-# Services stopped successfully.
-# Services destroyed successfully.
-# Destroying containers...
->>>>>>> 0d634d74 (fix: arewave impl)
 ```

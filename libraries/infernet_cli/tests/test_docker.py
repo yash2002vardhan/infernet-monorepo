@@ -5,17 +5,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from infernet_cli.cli.docker import (
-<<<<<<< HEAD
     docker_destroy,
     docker_start,
     docker_stop,
     run_command,
-=======
-    destroy_service,
-    run_command,
-    start_service,
-    stop_service,
->>>>>>> 0d634d74 (fix: arewave impl)
 )
 
 
@@ -36,7 +29,6 @@ def test_run_command_success(mock_subprocess_run: MagicMock) -> None:
     "function,expected_command",
     [
         (
-<<<<<<< HEAD
             docker_start,
             ["docker", "compose", "-f", "/test/dir/docker-compose.yaml", "up", "-d"],
         ),
@@ -46,17 +38,6 @@ def test_run_command_success(mock_subprocess_run: MagicMock) -> None:
         ),
         (
             docker_destroy,
-=======
-            start_service,
-            ["docker", "compose", "-f", "/test/dir/docker-compose.yaml", "up", "-d"],
-        ),
-        (
-            stop_service,
-            ["docker", "compose", "-f", "/test/dir/docker-compose.yaml", "stop"],
-        ),
-        (
-            destroy_service,
->>>>>>> 0d634d74 (fix: arewave impl)
             ["docker", "compose", "-f", "/test/dir/docker-compose.yaml", "rm", "-f"],
         ),
     ],
