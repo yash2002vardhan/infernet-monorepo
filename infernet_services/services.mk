@@ -16,7 +16,7 @@ export find_service
 ifeq ($(shell uname -s),Darwin)
     platform ?= linux/arm64
 else
-    platform ?= linux/arm64
+    platform ?= linux/amd64
 endif
 
 build-echo:
@@ -33,8 +33,10 @@ build-service:
 	fi; \
 	if [ -n "$(x)" ]; then \
 		$(MAKE) buildx -C $(service_dir)/$$service index_url=$$index_url platform=$(platform); \
+	elif [ -n "$(multi)" ]; then \
+		$(MAKE) build-multiplatform -C $(service_dir)/$$service index_url=$$index_url platform=$(platform); \
 	else \
-		$(MAKE) build -C $(service_dir)/$$service index_url=$$index_url platform=$(platform); \
+		$(MAKE) build -C $(service_dir)/$$service index_url=$$index_url; \
 	fi
 
 buildx-service:

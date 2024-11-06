@@ -1,6 +1,6 @@
 DOCKER_ORG := ritualnetwork
 service_name := hf_inference_client_service
-TAG := $(DOCKER_ORG)/$(service_name):2.0.1
+TAG := $(DOCKER_ORG)/$(service_name):latest
 
 build:
 	@docker build -t $(TAG) --build-arg index_url=$(index_url) .
