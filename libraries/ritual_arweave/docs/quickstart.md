@@ -9,6 +9,7 @@ You can install the `ritual-arweave` library via pip or by cloning the repositor
     ```bash
     pip install ritual-arweave
     ```
+
 === "uv"
 
     ```bash
@@ -51,7 +52,6 @@ uv pip install .
     * `--version-file`: Path to a JSON file mapping filenames to versions.
     * `--wallet`: Path to the wallet file (default is `wallet.json`).
     * `--api-url`: Arweave gateway URL (default is `https://arweave.net`).
-
 
 ### Downloading a Repository
 
@@ -110,3 +110,48 @@ uv pip install .
     ```bash
     ritual-arweave download-file --file-path /path/to/save/file --tx-id transaction-id
     ```
+
+### Generic Blob Upload/Download
+
+**New:** You can upload/download generic data blobs to/from Arweave using the
+`FileManager` class.
+
+
+```python
+from ritual_arweave.file_manager import FileManager
+
+file_manager = FileManager(wallet_path='./wallet.json')
+data = "yooooo".encode()
+tx = file_manager.upload_data(data)
+print("tx: %s", tx.id)
+
+```
+
+### Dictionary Upload/Download
+
+**New:** Much like blobs, you can upload/download dictionaries to/from Arweave using the
+`FileManager` class.
+
+```python
+from ritual_arweave.file_manager import FileManager
+
+file_manager = FileManager(wallet_path='./wallet.json')
+data = {"key": "value"}
+tx = file_manager.upload_dict(data)
+print("tx: %s", tx.id)
+```
+
+### Large File Uploads/Downloads
+
+Arweave transactions have a maximum size limit. To upload large files, this library
+splits the file into chunks and uploads them separately. The library automatically
+handles the chunking and reassembly of the file when downloading.
+
+**Parallel Workers**: The library utilizes a [QueueProcessor](../reference/ritual_arweave/concurrency_utils/?h=queue#ritual_arweave.concurrency_utils.QueueProcessor)
+to perform uploads and downloads in parallel. For each Arweave gateway URL passed in,
+a separate worker is created to handle the requests.
+
+![Download image](../assets/download.png)
+
+**Note:** The chunk size is set to 5MB by default. You can adjust this value by passing
+`max_upload_size` as a parameter to the [FileManager](../reference/ritual_arweave/file_manager/?h=filemanager#ritual_arweave.file_manager.FileManager)

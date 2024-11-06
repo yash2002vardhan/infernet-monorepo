@@ -13,6 +13,12 @@ endef
 
 export find_service
 
+ifeq ($(shell uname -s),Darwin)
+    platform ?= linux/arm64
+else
+    platform ?= linux/amd64
+endif
+
 build-echo:
 	$(MAKE) build-service service_dir=infernet_services/test_services service=echo
 
@@ -25,7 +31,16 @@ build-service:
 		echo "Getting Index"; \
 		index_url=`make get-index-url`; \
 	fi; \
-	$(MAKE) build -C $(service_dir)/$$service index_url=$$index_url
+	if [ -n "$(x)" ]; then \
+		$(MAKE) buildx -C $(service_dir)/$$service index_url=$$index_url platform=$(platform); \
+	elif [ -n "$(multi)" ]; then \
+		$(MAKE) build-multiplatform -C $(service_dir)/$$service index_url=$$index_url platform=$(platform); \
+	else \
+		$(MAKE) build -C $(service_dir)/$$service index_url=$$index_url; \
+	fi
+
+buildx-service:
+	@$(MAKE) build-service x=1
 
 build-base:
 	@eval "$$find_service"; \

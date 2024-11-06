@@ -39,3 +39,5 @@ def ritual_arweave_dir() -> str:
 
 skip_setup = False
 skip_teardown = False
+
+skip_slow_tests = os.getenv("SKIP_LONG_TESTS", "").lower() == "true"

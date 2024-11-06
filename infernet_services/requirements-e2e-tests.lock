@@ -86,7 +86,7 @@ requests==2.32.3
 reretry==0.11.8
 retry2==0.9.5
 rich==13.8.1
-ritual-arweave==0.1.1
+ritual-arweave==0.2.0
 ritual-pyarweave==0.1.2
 rlp==4.0.1
 rpds-py==0.20.0

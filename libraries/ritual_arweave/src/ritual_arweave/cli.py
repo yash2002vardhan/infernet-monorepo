@@ -13,11 +13,11 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 import click
-from ar import PUBLIC_GATEWAYS  # type: ignore
 from ritual_arweave.file_manager import FileManager
 from ritual_arweave.repo_manager import NotFinalizedException, RepoManager
+from ritual_arweave.utils import PUBLIC_GATEWAYS
 
-DEFAULT_ARWEAVE_GATEWAY = PUBLIC_GATEWAYS[0]
+DEFAULT_GATEWAYS = ",".join(PUBLIC_GATEWAYS)
 
 
 # suppress ritual-pyarweave error logs
@@ -66,13 +66,35 @@ def wallet_option(f: GenericCallable) -> GenericCallable:
     )(f)
 
 
-def api_url_option(f: GenericCallable) -> GenericCallable:
+def gateways_option(f: GenericCallable) -> GenericCallable:
     return click.option(
-        "--api-url",
+        "--gateways",
         type=str,
         required=False,
-        default=DEFAULT_ARWEAVE_GATEWAY,  # Assuming a default value is set
-        help=f"Arweave gateway URL, defaults to {DEFAULT_ARWEAVE_GATEWAY}",
+        default=DEFAULT_GATEWAYS,  # Assuming a default value is set
+        help=f"Comma separated list of Arweave gateways, default is "
+        f"{DEFAULT_GATEWAYS}",
+    )(f)
+
+
+def max_upload_size_option(f: GenericCallable) -> GenericCallable:
+    return click.option(
+        "--max-upload-size",
+        type=int,
+        required=False,
+        default=None,  # Assuming a default value is set
+        help="If a file is too large to be uploaded in a single transaction, it will be "
+        "split into chunks of this size. Default is 5MB",
+    )(f)
+
+
+def show_progress_option(f: GenericCallable) -> GenericCallable:
+    return click.option(
+        "--show-progress",
+        type=bool,
+        required=False,
+        default=True,
+        help="If set, it will show progress bar while uploading files",
     )(f)
 
 
@@ -91,7 +113,8 @@ def api_url_option(f: GenericCallable) -> GenericCallable:
 )
 @repo_name_option
 @wallet_option
-@api_url_option
+@show_progress_option
+@gateways_option
 @cli.command(
     name="upload-repo",
 )
@@ -100,7 +123,8 @@ def upload_repo(
     repo_dir: str,
     version_file: Optional[str],
     wallet: str,
-    api_url: str,
+    show_progress: bool,
+    gateways: str,
 ) -> None:
     """
     Uploads a repo to Arweave using the specified repo name & repo directory.
@@ -111,7 +135,8 @@ def upload_repo(
         version_file (optional): Path to the version mapping file. This is a json file
             that maps repo filenames to their corresponding versions.
         wallet (optional): Path to the wallet file. Default is `wallet.json`.
-        api_url (optional): Arweave gateway URL. Default is `https://arweave.net`.
+        show_progress: If set, it will show progress bar while uploading files.
+        gateways (optional): Commas separated list of Arweave gateways.
 
 
     Examples:
@@ -133,9 +158,11 @@ def upload_repo(
         --wallet <wallet>
 
     """
-    r = RepoManager(api_url=api_url, wallet_path=wallet).upload_repo(
-        name=repo_name, path=repo_dir, version_mapping_file=version_file
-    )
+    r = RepoManager(
+        gateways=gateways.split(","),
+        wallet_path=wallet,
+        show_progress_bar=show_progress,
+    ).upload_repo(name=repo_name, path=repo_dir, version_mapping_file=version_file)
     click.echo(
         f"uploaded repo: {r}"
         f"\n\tyou can download it using the repo id: "
@@ -158,7 +185,8 @@ def upload_repo(
     help="If set, it will override the existing repo files if they exist",
 )
 @repo_id_option
-@api_url_option
+@show_progress_option
+@gateways_option
 @cli.command(
     name="download-repo",
 )
@@ -166,7 +194,8 @@ def download_repo(
     repo_id: str,
     base_path: str = ".",
     force_download: bool = False,
-    api_url: str = DEFAULT_ARWEAVE_GATEWAY,
+    show_progress: bool = True,
+    gateways: str = DEFAULT_GATEWAYS,
 ) -> None:
     """
     Downloads a repo from Arweave using the specified repo ID, and
@@ -179,7 +208,8 @@ def download_repo(
         base_path: The base path to save the repo files. Defaults to the current
             directory.
         force_download: If set, it will override the existing repo files if they exist.
-        api_url: Arweave gateway URL. Default is `https://arweave.net`.
+        show_progress: If set, it will show progress bar while downloading files.
+        gateways: Commas separated list of Arweave gateways.
 
     Examples:
 
@@ -194,8 +224,12 @@ def download_repo(
     """
 
     try:
-        files = RepoManager(api_url=api_url).download_repo(
-            repo_id, base_path, force_download
+        files = RepoManager(
+            gateways=gateways.split(","), show_progress_bar=show_progress
+        ).download_repo(
+            repo_id,
+            base_path,
+            force_download,
         )
     except NotFinalizedException:
         click.echo(
@@ -217,14 +251,16 @@ def download_repo(
     type=str,
     help="Transaction id of the file to download",
 )
-@api_url_option
+@show_progress_option
+@gateways_option
 @cli.command(
     name="download-file",
 )
 def download_file(
     file_path: str,
     tx_id: str,
-    api_url: str = DEFAULT_ARWEAVE_GATEWAY,
+    gateways: str = DEFAULT_GATEWAYS,
+    show_progress: bool = True,
 ) -> None:
     """
     Downloads a file from Arweave using the transaction ID.
@@ -232,7 +268,8 @@ def download_file(
     Parameters:
         file_path: Path to the file to download.
         tx_id: Transaction ID of the file to download.
-        api_url: Arweave gateway URL. Default is `https://arweave.net`.
+        gateways: Comma separated list of Arweave gateways.
+        show_progress: If set to false, it will not show the progress bar while
 
     Examples:
 
@@ -240,7 +277,7 @@ def download_file(
 
     ritual-arweave download-file --file-path <file-path> --tx-id <tx-id>
     """
-    fm = FileManager(api_url=api_url)
+    fm = FileManager(gateways=gateways.split(","), show_progress_bar=show_progress)
     fm.download(file_path, tx_id)
 
 
@@ -257,14 +294,18 @@ def download_file(
     default="{}",
     help="Dictionary of tags to attach to the file. Must be a JSON string.",
 )
-@api_url_option
+@max_upload_size_option
+@show_progress_option
+@gateways_option
 @wallet_option
 @cli.command(
     name="upload-file",
 )
 def upload_file(
     file_path: str,
-    api_url: str = DEFAULT_ARWEAVE_GATEWAY,
+    max_upload_size: int,
+    show_progress: bool = True,
+    gateways: str = ",".join(DEFAULT_GATEWAYS),
     wallet: str = "wallet.json",
     tags: str = "{}",
 ) -> None:
@@ -273,7 +314,9 @@ def upload_file(
 
     Parameters:
         file_path: Path to the file to upload.
-        api_url: Arweave gateway URL. Default is `https://arweave.net`.
+        max_upload_size: For large files, the file will be split into chunks of this
+        size.
+        gateways: Comma separated list of Arweave gateways.
         wallet: Path to the wallet file. Default is `wallet.json`.
         tags: Dictionary of tags to attach to the file. Must be a JSON string.
 
@@ -283,6 +326,11 @@ def upload_file(
 
     ritual-arweave upload-file --file-path <file-path>
     """
-    fm = FileManager(api_url=api_url, wallet_path=wallet)
+    fm = FileManager(
+        gateways=gateways.split(","),
+        wallet_path=wallet,
+        max_upload_size=max_upload_size,
+        show_progress_bar=show_progress,
+    )
     tx = fm.upload(Path(file_path), tags_dict=json.loads(tags))
     click.echo(f"uploaded file: {tx.id}")

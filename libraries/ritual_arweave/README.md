@@ -32,3 +32,13 @@ uv pip install ritual-arweave
 ```
 ritual-arweave --help
 ```
+
+## Developing
+
+You might find yourself iterating on both `ritual_arweave` & `ritual_pyarweave` when
+doing development. To make sure that the correct modules are imported, set the
+`PYTHONPATH` environment variable like so:
+
+```
+export PYTHONPATH="libraries/ritual_arweave/src:libraries/ritual_pyarweave/src"
+```

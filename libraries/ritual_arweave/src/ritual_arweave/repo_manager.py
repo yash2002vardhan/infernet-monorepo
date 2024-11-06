@@ -17,8 +17,9 @@ import logging
 import mimetypes
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 import requests
 from ar import Transaction  # type: ignore
@@ -26,8 +27,9 @@ from ar.manifest import Manifest  # type: ignore
 from pydantic import BaseModel
 from requests.exceptions import HTTPError
 from ritual_arweave.file_manager import FileManager
-from ritual_arweave.types import RepoId, Tags
+from ritual_arweave.types import ArRepoId, Tags
 from ritual_arweave.utils import edge_unix_ts, get_sha256_digest
+from ritual_arweave.version import VERSION
 
 log = logging.getLogger(__name__)
 
@@ -38,10 +40,10 @@ class NotFinalizedException(Exception):
     pass
 
 
-class UploadRepoResult(BaseModel):
+class UploadArweaveRepoResult(BaseModel):
     """Model to represent the result of a repository upload."""
 
-    repo_id: RepoId
+    repo_id: ArRepoId
     transaction_id: str
     manifest_url: str
 
@@ -49,16 +51,16 @@ class UploadRepoResult(BaseModel):
 class RepoManager(FileManager):
     def download_artifact_file(
         self,
-        repo_id: Union[RepoId, str],
+        repo_id: Union[ArRepoId, str],
         file_name: str,
         version: Optional[str] = None,
         force_download: bool = False,
-        base_path: str = ".",
-    ) -> str:
+        base_path: str | Path = ".",
+    ) -> Path:
         """Downloads a specific artifact from Arweave.
 
         Args:
-            repo_id (Union[RepoId, str]): id of the repo, if provided as a string, the
+            repo_id (Union[ArRepoId, str]): id of the repo, if provided as a string, the
                 format must be of the form `owner`/`name`. Where `owner` is the wallet
                 address of the uploader and `name` is the repository's name.
             file_name (str): name of artifact
@@ -72,10 +74,10 @@ class RepoManager(FileManager):
             ValueError: if wallet file path is not specified or wallet file is not found.
 
         Returns:
-            str: path of downloaded file
+            Path: path to downloaded file
         """
         if isinstance(repo_id, str):
-            repo_id = RepoId.from_str(repo_id)
+            repo_id = ArRepoId.from_str(repo_id)
 
         base = Path(base_path)
         os.makedirs(base, exist_ok=True)
@@ -162,16 +164,16 @@ class RepoManager(FileManager):
             return self.download(str(file_path), tx_id)
         else:
             log.info(f"not downloading {tx_metadata} because it already exists")
-            return os.path.abspath(file_path)
+            return Path(file_path)
 
     def upload_repo(
         self,
         name: str,
-        path: str,
+        path: Path | str,
         version_mapping_file: Optional[str] = None,
         version_mapping: Optional[Dict[str, str]] = None,
         extra_file_tags: Optional[Dict[str, Tags]] = None,
-    ) -> UploadRepoResult:
+    ) -> UploadArweaveRepoResult:
         """
         Uploads a repo directory to Arweave. For every repository upload, a manifest
         mapping is created.
@@ -180,7 +182,7 @@ class RepoManager(FileManager):
             name (str): Name of the repository. Once uploaded, the repo will be
                 accessible via the repo Id: `owner/name`. Where `owner` is the wallet
                 address of the uploader and `name` is the repository's name.
-            path (str): Path to the directory containing the artifacts.
+            path (Path | str): Path to the directory containing the repository files.
             version_mapping_file (str): Path to a json dict file mapping file names to
                 specific versions. If a specific mapping is found, the File-Version
                 attribute is tagged with the value. This is to facilitate uploading and
@@ -197,8 +199,8 @@ class RepoManager(FileManager):
             ValueError: if wallet file path is not specified or wallet file is not found.
 
         Returns:
-            UploadRepoResult: Result of the upload containing repo_id, transaction_id,
-            and manifest_url.
+            UploadArweaveRepoResult: Result of the upload containing repo_id,
+            transaction_id, and manifest_url.
         """
 
         # path to load files from
@@ -226,7 +228,7 @@ class RepoManager(FileManager):
 
         ritual_tags: Tags = {
             "App-Name": "Ritual",
-            "App-Version": "0.1.0",
+            "App-Version": VERSION,
             "Unix-Time": str(timestamp),
             "Repo-Name": str(name),
         }
@@ -281,43 +283,52 @@ class RepoManager(FileManager):
 
         self.logger(f"uploaded manifest with tx id {t.id}")
 
-        return UploadRepoResult(
-            repo_id=RepoId(owner=self.wallet.address, name=name),
+        return UploadArweaveRepoResult(
+            repo_id=ArRepoId(owner=self.wallet.address, name=name),
             transaction_id=t.id,
             manifest_url=f"{t.api_url}/{t.id}",
         )
 
-    def download_repo(
+    def download_file_in_repo(
         self,
-        repo_id: Union[RepoId, str],
-        base_path: str = ".",
-        force_download: bool = False,
-    ) -> list[str]:
-        """Downloads a repo from Arweave to a given directory.
+        repo_id: Union[ArRepoId, str],
+        file_name: str,
+        base_path: str | Path = Path("."),
+    ) -> Path:
+        """
+        Downloads a file from a repo on Arweave.
 
         Args:
-            repo_id (Union[RepoId, str]): id of the repo, if provided as a string, the
-                format must be of the form `owner`/`name`. Where `owner` is the wallet
-                address of the uploader and `name` is the respository's name.
-            base_path (str, optional): Directory to download to. Defaults to current
-                directory.
-            force_download (bool, optional): If True, will download files even if they
-                already exist. Defaults to False.
-
-        Raises:
-            ValueError: if wallet file path is not specified or wallet file is not found.
-            ValueError: if matching repo manifest not found
-            NotFinalizedException: if the manifest is still being mined
+            repo_id: Arweave repo id, in the format of `owner`/`name` where `owner` is
+                the wallet address of the uploader and `name` is the repository's name.
+            file_name: name of the file to download.
+            base_path: path to download the file to.
 
         Returns:
-            list[str]: downloaded file paths
-        """
-        if isinstance(repo_id, str):
-            repo_id = RepoId.from_str(repo_id)
-        owners = [repo_id.owner]
-        base = Path(base_path)
-        os.makedirs(base, exist_ok=True)
+            path to the downloaded file.
 
+        """
+
+        base_path = Path(base_path)
+        manifest = self.get_repo_manifest(repo_id)
+        file_tid = manifest["paths"][file_name]["id"]
+        return self.download(base_path / file_name, file_tid)
+
+    def get_repo_manifest(self, repo_id: Union[ArRepoId, str]) -> dict[str, Any]:
+        """
+        Get the manifest of a repo from Arweave.
+        Args:
+            repo_id: Arweave repo id, in the format of `owner`/`name` where `owner` is
+                the wallet address of the uploader and `name` is the repository's name.
+
+        Returns:
+            dict: manifest of the repo.
+
+        """
+
+        if isinstance(repo_id, str):
+            repo_id = ArRepoId.from_str(repo_id)
+        owners = [repo_id.owner]
         query_str = """
         query {
             transactions(
@@ -400,23 +411,57 @@ class RepoManager(FileManager):
         log.info("done getting manifest")
 
         self.logger(f"loaded manifest {m}")
+        return cast(dict[str, Any], m)
+
+    def download_repo(
+        self,
+        repo_id: Union[ArRepoId, str],
+        base_path: str | Path = Path("."),
+        force_download: bool = False,
+    ) -> List[Path]:
+        """Downloads a repo from Arweave to a given directory.
+
+        Args:
+            repo_id (Union[ArRepoId, str]): id of the repo, if provided as a string, the
+                format must be of the form `owner`/`name`. Where `owner` is the wallet
+                address of the uploader and `name` is the respository's name.
+            base_path (str | Path, optional): path to download files to. Defaults to ".".
+            force_download (bool, optional): If True, will download files even if they
+                already exist. Defaults to False.
+
+        Raises:
+            ValueError: if wallet file path is not specified or wallet file is not found.
+            ValueError: if matching repo manifest not found
+            NotFinalizedException: if the manifest is still being mined
+
+        Returns:
+            list[str]: downloaded file paths
+        """
+
+        manifest = self.get_repo_manifest(repo_id)
+
+        base = Path(base_path)
+        base.mkdir(parents=True, exist_ok=True)
 
         paths = []
-        # download files in manifest
-        for pathname, tid in m["paths"].items():
-            file_tid: str = tid["id"]
-            joined_path: Path = base.joinpath(pathname)
 
-            # check if file exists
-            if force_download or not self.file_exists(str(joined_path), file_tid):
-                st = time.time()
-                self.logger(f"downloading file {pathname} for {file_tid}")
-                paths.append(self.download(str(joined_path), file_tid))
-                self.logger(f"downloaded in {time.time() - st} sec: {joined_path}")
-            else:
-                self.logger(
-                    f"Path {joined_path} already exists and will not be downloaded. "
-                    + "Please remove it or use --force_download flag."
-                )
+        with ThreadPoolExecutor() as executor:
+            for pathname, tid in manifest["paths"].items():
+                file_tid: str = tid["id"]
+                joined_path: Path = base.joinpath(pathname)
 
-        return paths
+                # check if file exists
+                if force_download or not self.file_exists(str(joined_path), file_tid):
+                    st = time.time()
+                    self.logger(f"downloading file {pathname} for {file_tid}")
+                    paths.append(
+                        executor.submit(self.download, str(joined_path), file_tid)
+                    )
+                    self.logger(f"downloaded in {time.time() - st} sec: {joined_path}")
+                else:
+                    self.logger(
+                        f"Path {joined_path} already exists and will not be downloaded. "
+                        + "Please remove it or use --force_download flag."
+                    )
+
+        return [p.result() for p in paths]

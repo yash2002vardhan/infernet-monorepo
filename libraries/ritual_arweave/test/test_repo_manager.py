@@ -1,11 +1,17 @@
 import logging
+import os
 import tempfile
 
-from ritual_arweave.types import RepoId
-
-from .utils import FixtureType, TemporaryRepo, mine_block, upload_repo
+import pytest
+from common import skip_slow_tests
+from dotenv import load_dotenv
+from ritual_arweave.repo_manager import RepoManager
+from ritual_arweave.types import ArRepoId
+from utils import FixtureType, TemporaryRepo, mine_block, upload_repo
 
 log = logging.getLogger(__name__)
+
+load_dotenv()
 
 
 def test_upload_and_download_repo(fund_account: FixtureType) -> None:
@@ -21,7 +27,7 @@ def test_upload_and_download_repo(fund_account: FixtureType) -> None:
 
     with tempfile.TemporaryDirectory() as temp_dir:
         paths = mm.download_repo(
-            repo_id=RepoId(name=repo1.name, owner=mm.wallet.address),
+            repo_id=ArRepoId(name=repo1.name, owner=mm.wallet.address),
             base_path=temp_dir,
         )
         repo1.check_against_directory(temp_dir)
@@ -60,7 +66,7 @@ def test_uploading_repo_twice_and_downloading_again_should_give_latest_version(
 
     with tempfile.TemporaryDirectory() as temp_dir:
         paths = mm.download_repo(
-            repo_id=RepoId(name=repo_name, owner=mm.wallet.address),
+            repo_id=ArRepoId(name=repo_name, owner=mm.wallet.address),
             base_path=temp_dir,
         )
         updated_repo.check_against_directory(temp_dir)
@@ -107,7 +113,7 @@ def test_versioned_repo_download(fund_account: FixtureType) -> None:
 
     with tempfile.TemporaryDirectory() as temp_dir:
         latest_file = mm.download_artifact_file(
-            repo_id=RepoId(name=repo_name, owner=mm.wallet.address),
+            repo_id=ArRepoId(name=repo_name, owner=mm.wallet.address),
             file_name="file1",
             base_path=temp_dir,
         )
@@ -115,7 +121,7 @@ def test_versioned_repo_download(fund_account: FixtureType) -> None:
         latest_repo.check_against_file(latest_file)
 
         versioned_file = mm.download_artifact_file(
-            repo_id=RepoId(name=repo_name, owner=mm.wallet.address),
+            repo_id=ArRepoId(name=repo_name, owner=mm.wallet.address),
             file_name="file1",
             version="1.0.0",
             base_path=temp_dir,
@@ -154,7 +160,7 @@ def test_download_repo_file(fund_account: FixtureType) -> None:
     for file in repo.files_dict:
         with tempfile.TemporaryDirectory() as temp_dir:
             file_path = mm.download_artifact_file(
-                repo_id=RepoId(name=repo.name, owner=mm.wallet.address),
+                repo_id=ArRepoId(name=repo.name, owner=mm.wallet.address),
                 file_name=file,
                 base_path=temp_dir,
             )
@@ -193,3 +199,17 @@ def test_download_repo_using_string_id(fund_account: FixtureType) -> None:
         repo.check_against_file(file_path)
 
     repo.delete()
+
+
+@pytest.mark.skipif(skip_slow_tests, reason="Skipping tests that take a long time")
+def test_large_repo_download() -> None:
+    repo = f"{os.environ['MODEL_OWNER']}/gemma-1.1-2b-it_Q4_KM"
+    RepoManager(show_progress_bar=False).download_repo(repo, "./llama")
+
+
+@pytest.mark.skipif(skip_slow_tests, reason="Skipping tests that take a long time")
+def test_large_file_download() -> None:
+    repo = f"{os.environ['MODEL_OWNER']}/gemma-1.1-2b-it_Q4_KM"
+    RepoManager(show_progress_bar=False).download_artifact_file(
+        repo, file_name="gemma-1.1-2b-it-Q4_K_M.gguf", base_path="./llama"
+    )
