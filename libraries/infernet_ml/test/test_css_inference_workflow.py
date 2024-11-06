@@ -60,7 +60,7 @@ expected_response = "yes"
     "provider, model, response",
     [
         (CSSProvider.OPENAI, "gpt-3.5-turbo-16k", expected_response),
-        (CSSProvider.PERPLEXITYAI, "mistral-7b-instruct", expected_response),
+        (CSSProvider.PERPLEXITYAI, "llama-3.1-8b-instruct", expected_response),
         (CSSProvider.GOOSEAI, "gpt-neo-125m", ""),
     ],
 )
@@ -96,7 +96,7 @@ def test_should_pass_api_key_with_request(
         ),
         (
             CSSProvider.PERPLEXITYAI,
-            "mistral-7b-instruct",
+            "llama-3.1-8b-instruct",
             [ConvoMessage(role="user", content=completion_prompt)],
             expected_response,
         ),
@@ -163,7 +163,12 @@ found_apple_prompt = "Who is the founder of the company named Apple?"
             "to 2 sentences",
             "flour",
         ),
-        (CSSProvider.PERPLEXITYAI, "mistral-7b-instruct", found_apple_prompt, "steve"),
+        (
+            CSSProvider.PERPLEXITYAI,
+            "llama-3.1-8b-instruct",
+            found_apple_prompt,
+            "steve",
+        ),
         (CSSProvider.GOOSEAI, "gpt-neo-125m", found_apple_prompt, ""),
     ],
 )

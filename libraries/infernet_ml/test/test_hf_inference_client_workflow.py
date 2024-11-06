@@ -80,7 +80,7 @@ def test_text_generation(
     workflow: HFInferenceClientWorkflow,
 ) -> None:
     input_data = HFTextGenerationInferenceInput(
-        prompt="Ritual's AI x Crypto stack is awesome!",
+        prompt="Ritual's AI x Crypto stack is awesome!", model="gpt2"
     )
     output_data = workflow.inference(input_data)
     assert len(output_data["output"]) > 0
