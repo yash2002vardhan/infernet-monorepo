@@ -85,4 +85,11 @@ models: Dict[CSSProvider, List[Dict[str, Any]]] = {
         {"id": "GOOSEAI/gpt-neoNone-3b", "name": "GPT-Neo 1.3B", "parameters": "1.3B"},
         {"id": "GOOSEAI/gpt-neo-2-7b", "name": "GPT-Neo 2.7B", "parameters": "2.7B"},
     ],
+    CSSProvider.MIRANETWORK: [
+        {"id": "MIRANETWORK/gpt-4o", "name": "GPT-4O", "parameters": None},
+        {"id": "MIRANETWORK/deepseek-r1", "name": "Deepseek R1", "parameters": None},
+        {"id": "MIRANETWORK/gpt-4o-mini", "name": "GPT-4O Mini", "parameters": None},
+        {"id": "MIRANETWORK/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet", "parameters": None},
+        {"id": "MIRANETWORK/llama-3.3-70b-instruct", "name": "Llama 3.3 70B Instruct", "parameters": "70B"},
+    ],
 }

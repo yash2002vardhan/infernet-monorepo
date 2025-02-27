@@ -95,6 +95,7 @@ def create_app() -> Quart:
         CSSProvider.GOOSEAI: os.getenv("GOOSEAI_API_KEY"),
         CSSProvider.OPENAI: os.getenv("OPENAI_API_KEY"),
         CSSProvider.PERPLEXITYAI: os.getenv("PERPLEXITYAI_API_KEY"),
+        CSSProvider.MIRANETWORK: os.getenv("MIRANETWORK_API_KEY"),
     }
     providers = sorted(api_keys.keys())
 

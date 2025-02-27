@@ -1,7 +1,7 @@
 """
 Library containing functions for accessing closed source models.
 
-Currently, 3 APIs are supported: OPENAI, PERPLEXITYAI, and GOOSEAI.
+Currently, 4 APIs are supported: OPENAI, PERPLEXITYAI, GOOSEAI, and MIRANETWORK.
 
 """
 
@@ -51,7 +51,7 @@ class CSSProvider(StrEnum):
     OPENAI = "OPENAI"
     PERPLEXITYAI = "PERPLEXITYAI"
     GOOSEAI = "GOOSEAI"
-
+    MIRANETWORK = "MIRANETWORK"
 
 ApiKeys = Dict[CSSProvider, Optional[str]]
 
@@ -174,6 +174,34 @@ def goose_ai_request_generator(req: CSSRequest) -> tuple[str, dict[str, Any]]:
             raise InfernetMLException(f"Unsupported request {req}")
 
 
+def mira_network_request_generator(req: CSSRequest) -> tuple[str, dict[str, Any]]:
+    """Returns base url & json input for Miran Network API.
+
+    Args:
+        req: a CSSRequest object, containing provider, endpoint, model,
+        api keys & params.
+
+    Returns:
+        base_url: str
+        processed input: dict[str, Any]
+
+    Raises:
+        InfernetMLException: if an unsupported model or params specified.
+    """
+    match req:
+        case CSSRequest(model=model_name, params=CSSCompletionParams(messages=msgs)):
+            return "https://api.mira.network/v1/", {
+                "model": model_name,
+                "messages": [msg.model_dump() for msg in msgs],
+            }
+        case CSSRequest(model=model_name, params=CSSEmbeddingParams(input=input)):
+            return "https://api.mira.network/v1/", {
+                "model": model_name,
+                "input": input,
+            }
+        case _:
+            raise InfernetMLException(f"Unsupported request {req}")
+
 def extract_completions(result: Dict[str, Any]) -> str:
     return cast(str, result["choices"][0]["message"]["content"])
 
@@ -211,6 +239,15 @@ PROVIDERS: dict[CSSProvider, Any] = {
             "completions": {
                 "real_endpoint": "completions",
                 "post_process": extract_completions_gooseai,
+            }
+        },
+    },
+    CSSProvider.MIRANETWORK: {
+        "input_func": mira_network_request_generator,
+        "endpoints": {
+            "completions": {
+                "real_endpoint": "chat/completions",
+                "post_process": extract_completions,
             }
         },
     },
@@ -289,6 +326,9 @@ def css_mux(req: CSSRequest) -> str:
             case CSSProvider.PERPLEXITYAI:
                 if result.status_code == 429:
                     raise RetryableException(result.text)
+            case CSSProvider.MIRANETWORK:
+                if result.status_code == 429 or result.status_code == 500:
+                    raise RetryableException(result.text)
             case _:
                 raise InfernetMLException(result.text)
 
@@ -304,6 +344,7 @@ streaming_post_processing: Dict[CSSProvider, Callable[[Any], str]] = {
         "content", ""
     ),
     CSSProvider.GOOSEAI: lambda result: result["choices"][0]["text"],
+    CSSProvider.MIRANETWORK: lambda result: result["choices"][0]["delta"].get("content", ""),
 }
 
 

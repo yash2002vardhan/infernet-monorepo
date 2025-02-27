@@ -26,7 +26,7 @@ class CSSProvider(IntEnum):
     OPENAI = 0
     GOOSEAI = 1
     PERPLEXITYAI = 2
-
+    MIRANETWORK = 3
 
 def encode_css_completion_request(
     provider: CSSProvider,
