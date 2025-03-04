@@ -19,9 +19,10 @@ CSS_OPENAI_ONLY = "css_openai_only"
 log = logging.getLogger(__name__)
 
 env_vars = {
-    "PERPLEXITYAI_API_KEY": os.environ["PERPLEXITYAI_API_KEY"],
-    "GOOSEAI_API_KEY": os.environ["GOOSEAI_API_KEY"],
-    "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
+    "PERPLEXITYAI_API_KEY": os.environ.get("PERPLEXITYAI_API_KEY", "dummy_key"),
+    "GOOSEAI_API_KEY": os.environ.get("GOOSEAI_API_KEY", "dummy_key"),
+    "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", "dummy_key"),
+    "MIRANETWORK_API_KEY": os.environ.get("MIRANETWORK_API_KEY", "sk-mira-34a4ecb272fa1ee16ab63ec4e6563b145f0418d2bf0aaed3"),
     "CSS_INF_WORKFLOW_POSITIONAL_ARGS": "[]",
     "CSS_INF_WORKFLOW_KW_ARGS": json.dumps(
         {
@@ -51,7 +52,7 @@ services = [
         name=CSS_OPENAI_ONLY,
         image_id=f"ritualnetwork/{SERVICE_NAME}:{SERVICE_VERSION}",
         env_vars={
-            "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
+            "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", "dummy_key"),
             "CSS_INF_WORKFLOW_POSITIONAL_ARGS": "[]",
             "CSS_INF_WORKFLOW_KW_ARGS": json.dumps(
                 {

@@ -194,11 +194,6 @@ def mira_network_request_generator(req: CSSRequest) -> tuple[str, dict[str, Any]
                 "model": model_name,
                 "messages": [msg.model_dump() for msg in msgs],
             }
-        case CSSRequest(model=model_name, params=CSSEmbeddingParams(input=input)):
-            return "https://api.mira.network/v1/", {
-                "model": model_name,
-                "input": input,
-            }
         case _:
             raise InfernetMLException(f"Unsupported request {req}")
 
