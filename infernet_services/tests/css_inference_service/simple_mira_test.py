@@ -16,7 +16,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 # Use the API key from conftest.py
-MIRANETWORK_API_KEY = "sk-mira-34a4ecb272fa1ee16ab63ec4e6563b145f0418d2bf0aaed3"
+MIRANETWORK_API_KEY = ""
 
 class TestMiraNetworkAPI(unittest.TestCase):
     """Test class for Mira Network API integration"""

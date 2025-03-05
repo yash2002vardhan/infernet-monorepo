@@ -22,7 +22,7 @@ env_vars = {
     "PERPLEXITYAI_API_KEY": os.environ.get("PERPLEXITYAI_API_KEY", "dummy_key"),
     "GOOSEAI_API_KEY": os.environ.get("GOOSEAI_API_KEY", "dummy_key"),
     "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", "dummy_key"),
-    "MIRANETWORK_API_KEY": os.environ.get("MIRANETWORK_API_KEY", "sk-mira-34a4ecb272fa1ee16ab63ec4e6563b145f0418d2bf0aaed3"),
+    "MIRANETWORK_API_KEY": os.environ.get("MIRANETWORK_API_KEY"),
     "CSS_INF_WORKFLOW_POSITIONAL_ARGS": "[]",
     "CSS_INF_WORKFLOW_KW_ARGS": json.dumps(
         {
